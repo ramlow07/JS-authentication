@@ -15,6 +15,9 @@ const PORT = 8080;
 // creating the express app
 const app = express();
 
+// Database URI
+const DbURI = "mongodb+srv://luamramlow:ideiafix@authdb.zctju3j.mongodb.net/?retryWrites=true&w=majority"
+
 // 2. adding middleware to parse the cookies and more 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -32,11 +35,13 @@ app.listen(PORT, function () {
 
 
 // importing the mongoose module 
-const = mongoose = require("mongoose");
+const mongoose = require("mongoose");
 
 // connecting to the database 
-mongoose
-.connect(process.env.MONGO_URI, {
+mongoose.connect(process.env.DbURI, {
 useNewUrlParser: true,
 useUnifiedTopology: true,
 })
+.then(() => {
+  console.log("MongoDB connections is established successfully 🎉");
+});

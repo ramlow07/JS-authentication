@@ -26,3 +26,4 @@ const userSchema = new Schema ({
 
 // exporting the user model
 module.exports = model ("User", userSchema);
+
