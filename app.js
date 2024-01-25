@@ -1,3 +1,6 @@
+
+const MONGO_URI = "mongodb+srv://luamramlow:ideiafix@authdb.zctju3j.mongodb.net/?retryWrites=true&w=majority";
+
 // for using environment variables
 require('dotenv').config();
 
@@ -10,13 +13,10 @@ const indexRouter = require("./routes/index");
 const authRouter = require("./routes/auth");
 
 // 1. setting the port on which the server will run
-const PORT = 8080;
+const port = process.env.port || 8080
 
 // creating the express app
 const app = express();
-
-// Database URI
-const DbURI = "mongodb+srv://luamramlow:ideiafix@authdb.zctju3j.mongodb.net/?retryWrites=true&w=majority"
 
 // 2. adding middleware to parse the cookies and more 
 app.use(express.json());
@@ -29,8 +29,8 @@ app.use("/", indexRouter);
 app.use("/auth", authRouter);
 
 // 4. starting the server
-app.listen(PORT, function () {
-  console.log(`🚀 Listening on port ${PORT}`);
+app.listen(port, function () {
+  console.log(`🚀 Listening on port ${port}`);
 });
 
 
@@ -38,7 +38,8 @@ app.listen(PORT, function () {
 const mongoose = require("mongoose");
 
 // connecting to the database 
-mongoose.connect(process.env.DbURI, {
+mongoose.
+connect(MONGO_URI, {
 useNewUrlParser: true,
 useUnifiedTopology: true,
 })

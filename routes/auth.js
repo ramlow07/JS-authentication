@@ -14,8 +14,8 @@ module.exports = router;
 
 
 
-const userModel = require ('./models/user');
-const { hash } = require(bcrypt.js);
+const userModel = require ('../models/user.js');
+const { hash } = require("bcryptjs");
 
 
 // importing the user model
