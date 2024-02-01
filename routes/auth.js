@@ -131,3 +131,80 @@ router.post("/logout", (_req, res) => {
         type: "success",
     });
 });
+
+// endpoint for getting a new access token using a refresh token
+
+const { verify } = require("jsonwebtoken");
+
+// Refresh token request
+
+router.post("/refresh_token", async (req, res) => {
+    try {
+        const { refreshtoken } = req.cookies;
+        // if we don't have a refresh token, return error
+
+        if(!refreshtoken)
+        return res.status(500).json({
+            message: "No refresh token!",
+            type: "error",
+        });
+
+        // if we have a refresh token, we have to verify it
+
+        let id;
+        try {
+            id = verify(refreshtoken, process.env.REFRESH_TOKEN_SECRET).id;
+        } catch (error) {
+            return res.status(500).json({
+                message: "invalid refresh token",
+                type: "error",
+            });
+        }
+
+        // if the refresh token is invalid, return error
+
+        if(!id)
+        return res.status(500).json({
+            message: "Invalid refresh token",
+            type: "error",
+        });
+
+        // if the refresh token is valid, check if the user exists
+        const user = await User.findById(id);
+
+        // if the user doesn't exists, return error
+        if (!user)
+        return res.status(500).json({
+            message: "User doesn't exists!",
+            type: "error",
+        });
+
+        // if the user exists, check if the refresh token is correct. return error if it is incorrect.
+        if (user.refreshtoken !== refreshtoken)
+        return res.status(500).json({
+            message: "Invalid refresh token!",
+            type: "error",
+        });
+
+        // if the refresh token is correct, create new tokens
+        const accessToken = createAccessToken(user._id);
+        const refreshToken = createRefreshToken(user._id);
+        
+        // update the refresh token in the database
+        user.refreshtoken = refreshToken;
+
+        // send the new tokens as a reponse
+        sendRefreshToken(res, refreshToken);
+        return res.json({
+            message: "Refreshed successfully",
+            type: "success",
+            accessToken,
+        });
+    } catch (error) {
+        res.status(500).json({
+            type: "error",
+            message: "Error refreshing token!",
+            error,
+        });
+    }
+});
