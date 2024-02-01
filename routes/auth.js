@@ -121,3 +121,13 @@ router.post("../signin", async (req, res) => {
         });
     }
 });
+
+// Sign out request
+router.post("/logout", (_req, res) => {
+    // clear cookies
+    res.clearCookie("refreshtoken");
+    return res.json({
+        message: "Logged out successfully.",
+        type: "success",
+    });
+});
