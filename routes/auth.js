@@ -15,7 +15,7 @@ module.exports = router;
 
 
 const userModel = require ('../models/user.js');
-const { hash } = require("bcryptjs");
+const { hash, compare } = require("bcryptjs");
 
 
 // importing the user model
@@ -64,3 +64,60 @@ router.post("/signup", async (req, res) => {
 });
 
 module.exports = router;
+
+// importing the helper functions
+const {
+    createAccessToken,
+    createRefreshToken,
+    sendAccessToken,
+    sendRefreshToken,
+
+} = require("../utils/tokens");
+
+// Sign in request
+router.post("../signin", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // 1. Check if user already exists
+
+    const user = await User.findOne ({ email: email});
+
+    // if user does not exist, return error
+
+    if (!user)
+    return res.status(500).json ({
+        message: "User doesn't exist!",
+        type: "error",
+    });
+
+    // 2. if user exists, check if the password is correct
+    const isMatch = await compare(password, user.password);
+
+    // if password is incorrect, return error
+
+    if (!isMatch) 
+    return res.status(500).json({
+        message: "Password is incorrect!",
+        type: "error",
+    });
+
+    // 3. if the password is correct, create the tokens
+    const accessToken = createAccesToken(user._id);
+    const refreshToken = createRefreshToken(user._id);
+
+    // 4. put refresh token in database
+    user.refreshtoken = refreshToken;
+    await user.save();
+
+    // 5. send the response
+    sendRefreshToken(res, refreshToken);
+    sendAccessToken(req, res, accessToken);
+    } catch (error) {
+        res.status(500).json({
+            type: "error",
+            message: "An error occurred while signing in.",
+            error,
+        });
+    }
+});
