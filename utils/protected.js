@@ -45,3 +45,5 @@ req.user = user;
 // call the next middleware
 next();
 };
+
+module.exports = { protected };
