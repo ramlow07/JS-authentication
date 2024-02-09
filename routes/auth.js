@@ -72,7 +72,7 @@ const {
     sendAccessToken,
     sendRefreshToken,
 
-} = require("../utils/tokens");
+} = require("../utils/token.js");
 
 // Sign in request
 router.post("../signin", async (req, res) => {
@@ -231,6 +231,99 @@ router.get("/protected", protected, async (req, res) => {
             type: error,
             message: "error getting protected route!",
             error,
+        });
+    }
+});
+
+const { createPasswordResetToken } = require("../utils/tokens");
+const { 
+    transporter,
+    createPasswordResetUrl,
+    passwordResetTemplate,
+    passwordResetConfirmationTemplate,
+} = require("../utils/email");
+
+// send the password reset email
+
+router.post("/send-password-reset-email", async (req, res) => {
+    try {
+        // get the user from request body
+        const { email } = req.body;
+        // find the user by email
+        const user = await User.findOne ({ email });
+        // if the user doesn't exists, return error
+        if (!user)
+        return res.status(500).json({
+            messsage: "User doesn't exists",
+            type: "error",
+        });
+        // create a password reset token
+        const token = createPasswordResetToken ({ ...user, createdAt: Date.now() });
+        // create the password reset url
+        const url = createPasswordResetUrl(user._id, token);
+        // send the email
+        const mailOptions = passwordResetTemplate(user, url);
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err)
+            return res.status(500).json({
+                message: "Error sending e-mail.",
+                type: "error",
+            });
+        });
+    } catch (error) {
+        res.status(500).json({
+            type: "error",
+            message: "Error sending e-mail.",
+            error,
+        });
+    }
+});
+
+// reset password
+
+router.post("/reset-password/:id/:token", async (req, res) => {
+    try {
+        // get the user details from the url 
+        const {id, token } = req.params;
+        // get the new password to the request body
+        const { newPassword } = req.body;
+        // find the user by id
+        const user = await User.findById(id);
+        // if the user doesn't exists, return error
+        if (!user)
+        return res.status(500).json({
+            message: "User doesn't exists",
+            type: error,
+        });
+        // verify if the token is valid
+        const isValid = verify(token, user.password);
+        // if the reset password token is invalid, return error
+        if (!isValid)
+        return res.status(500).json({
+            message: "Invalid token.",
+            type: error,
+        });
+        // set the user's password to the new password
+        user.password = await hash(newPassword, 10);
+        // save the user
+        await user.save();
+        // send the email
+        const mailOptions = passwordResetConfirmationTemplate(user);
+        transporter.sendEmail(mailOptions, (err, info) => {
+            if (err)
+            return res.status(500).json({
+                message: "Error sending email!",
+                type: error,
+            });
+            return res.json({
+                message: "Email sent successfully",
+                type: success,
+            });
+        });
+    } catch (error) {
+        res.status(500).json({
+            type: "error",
+            message: "Error sending email.",
         });
     }
 });
