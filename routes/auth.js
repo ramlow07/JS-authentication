@@ -235,7 +235,7 @@ router.get("/protected", protected, async (req, res) => {
     }
 });
 
-const { createPasswordResetToken } = require("../utils/tokens");
+const { createPasswordResetToken } = require("../utils/token.js");
 const { 
     transporter,
     createPasswordResetUrl,

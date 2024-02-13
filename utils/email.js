@@ -1,6 +1,6 @@
 const { createTransport } = require("nodemailer");
 
-const createPasswordResetUrl = (id, token) => {
+const createPasswordResetUrl = (id, token) => 
     `${process.env.CLIENT_URL}/reset-password/${id}/${token}`;
 
     const transporter = createTransport({
@@ -10,7 +10,7 @@ const createPasswordResetUrl = (id, token) => {
             pass: process.env.EMAIL_PASSWORD,
         },
     });
-}
+
 
 
 // creating the mail template to be sent
